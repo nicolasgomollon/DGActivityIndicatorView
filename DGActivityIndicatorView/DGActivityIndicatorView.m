@@ -98,6 +98,20 @@ static const CGFloat kDGActivityIndicatorDefaultSize = 40.0f;
     [self setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisVertical];
 }
 
+- (void)redrawLayers {
+    _animationLayer.frame = self.bounds;
+    
+    BOOL animating = _animating;
+    
+    if (animating)
+        [self stopAnimating];
+    
+    [self setupAnimation];
+    
+    if (animating)
+        [self startAnimating];
+}
+
 - (void)setupAnimation {
     _animationLayer.sublayers = nil;
     
@@ -148,16 +162,7 @@ static const CGFloat kDGActivityIndicatorDefaultSize = 40.0f;
     if (![_tintColor isEqual:tintColor]) {
         _tintColor = tintColor;
         
-        CGColorRef tintColorRef = tintColor.CGColor;
-        for (CALayer *sublayer in _animationLayer.sublayers) {
-            sublayer.backgroundColor = tintColorRef;
-            
-            if ([sublayer isKindOfClass:[CAShapeLayer class]]) {
-                CAShapeLayer *shapeLayer = [[CAShapeLayer alloc] init];
-                shapeLayer.strokeColor = tintColorRef;
-                shapeLayer.fillColor = tintColorRef;
-            }
-        }
+        [self redrawLayers];
     }
 }
 
@@ -241,18 +246,7 @@ static const CGFloat kDGActivityIndicatorDefaultSize = 40.0f;
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
-    _animationLayer.frame = self.bounds;
-
-    BOOL animating = _animating;
-
-    if (animating)
-        [self stopAnimating];
-
-    [self setupAnimation];
-
-    if (animating)
-        [self startAnimating];
+    [self redrawLayers];
 }
 
 - (CGSize)intrinsicContentSize {
